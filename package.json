@@ -15,9 +15,20 @@
     "nodemon": "^2.0.13"
   },
   "dependencies": {
+    "@socket.io/admin-ui": "^0.2.0",
     "express": "^4.17.1",
     "pug": "^3.0.2",
     "socket.io": "^4.2.0",
     "ws": "^8.2.3"
-  }
+  },
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dlrlaud0806/socket.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/dlrlaud0806/socket/issues"
+  },
+  "homepage": "https://github.com/dlrlaud0806/socket#readme"
 }
