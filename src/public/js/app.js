@@ -1,10 +1,13 @@
 const socket = io();
+
 const myFace = document.getElementById("myFace");
 const muteBtn = document.getElementById("mute");
 const cameraBtn = document.getElementById("camera");
 const camerasSelect = document.getElementById("cameras");
 const call = document.getElementById("call");
+
 call.hidden = true;
+
 let myStream;
 let muted = false;
 let cameraOff = false;
@@ -29,6 +32,7 @@ async function getCameras() {
     console.log(e);
   }
 }
+
 async function getMedia(deviceId) {
   const initialConstrains = {
     audio: true,
@@ -50,6 +54,7 @@ async function getMedia(deviceId) {
     console.log(e);
   }
 }
+
 function handleMuteClick() {
   myStream
     .getAudioTracks()
@@ -74,18 +79,24 @@ function handleCameraClick() {
     cameraOff = true;
   }
 }
+
 async function handleCameraChange() {
   await getMedia(camerasSelect.value);
-  if(myPeerConnection){
+  if (myPeerConnection) {
     const videoTrack = myStream.getVideoTracks()[0];
-    const videoSender = myPeerConnection.getSenders().find(sender => sender.track.kind ==="video");
+    const videoSender = myPeerConnection
+      .getSenders()
+      .find((sender) => sender.track.kind === "video");
     videoSender.replaceTrack(videoTrack);
   }
 }
+
 muteBtn.addEventListener("click", handleMuteClick);
 cameraBtn.addEventListener("click", handleCameraClick);
 camerasSelect.addEventListener("input", handleCameraChange);
+
 // Welcome Form (join a room)
+
 const welcome = document.getElementById("welcome");
 const welcomeForm = welcome.querySelector("form");
 
@@ -100,10 +111,11 @@ async function handleWelcomeSubmit(event) {
   event.preventDefault();
   const input = welcomeForm.querySelector("input");
   await initCall();
-  socket.emit("join_room", input.value, startMedia);
+  socket.emit("join_room", input.value);
   roomName = input.value;
   input.value = "";
 }
+
 welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 
 // Socket Code
@@ -115,29 +127,41 @@ socket.on("welcome", async () => {
   socket.emit("offer", offer, roomName);
 });
 
-socket.on("offer", async(offer) => {
-  console.log("receive the offer");
+socket.on("offer", async (offer) => {
+  console.log("received the offer");
   myPeerConnection.setRemoteDescription(offer);
   const answer = await myPeerConnection.createAnswer();
-  console.log(answer);
   myPeerConnection.setLocalDescription(answer);
   socket.emit("answer", answer, roomName);
   console.log("sent the answer");
 });
 
-socket.on("answer", answer => {
+socket.on("answer", (answer) => {
+  console.log("received the answer");
   myPeerConnection.setRemoteDescription(answer);
-  console.log("receive the answer");
 });
 
-socket.on("ice", ice => {
+socket.on("ice", (ice) => {
+  console.log("received candidate");
   myPeerConnection.addIceCandidate(ice);
-  console.log("receive the candidate");
 });
+
 // RTC Code
 
 function makeConnection() {
-  myPeerConnection = new RTCPeerConnection();
+  myPeerConnection = new RTCPeerConnection({
+    iceServers: [
+      {
+        urls: [
+          "stun:stun.l.google.com:19302",
+          "stun:stun1.l.google.com:19302",
+          "stun:stun2.l.google.com:19302",
+          "stun:stun3.l.google.com:19302",
+          "stun:stun4.l.google.com:19302"
+        ]
+      }
+    ]
+  });
   myPeerConnection.addEventListener("icecandidate", handleIce);
   myPeerConnection.addEventListener("addstream", handleAddStream);
   myStream
